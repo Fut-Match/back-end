@@ -74,7 +74,8 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+        // Token expira em 24 horas (1440 minutos)
+        $token = $user->createToken('auth_token', ['*'], now()->addDay())->plainTextToken;
 
         return response()->json([
             'success' => true,
@@ -83,6 +84,7 @@ class AuthController extends Controller
                 'user' => $user,
                 'token' => $token,
                 'token_type' => 'Bearer',
+                'expires_in' => 86400, // segundos (24 horas)
             ],
         ], 201);
     }
@@ -148,7 +150,8 @@ class AuthController extends Controller
         }
 
         $user = Auth::user();
-        $token = $user->createToken('auth_token')->plainTextToken;
+        // Token expira em 24 horas
+        $token = $user->createToken('auth_token', ['*'], now()->addDay())->plainTextToken;
 
         return response()->json([
             'success' => true,
@@ -157,6 +160,7 @@ class AuthController extends Controller
                 'user' => $user,
                 'token' => $token,
                 'token_type' => 'Bearer',
+                'expires_in' => 86400, // segundos (24 horas)
             ],
         ]);
     }
