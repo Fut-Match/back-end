@@ -473,13 +473,13 @@
                 ]
             }
         },
-        "/health": {
+        "/api/health": {
             "get": {
                 "tags": [
                     "Health"
                 ],
                 "summary": "Verifica o status do projeto",
-                "operationId": "460436cfd9d920611c1917e911efc52b",
+                "operationId": "63b1ce2f2ebf25ebed861a927661a63f",
                 "responses": {
                     "200": {
                         "description": "Status do projeto",
