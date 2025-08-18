@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\HealthController;
+use App\Http\Controllers\PlayerController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -34,8 +35,20 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('logout-all', [AuthController::class, 'logoutAll']);
     });
 
+    // Rotas de jogadores protegidas
+    Route::prefix('players')->group(function () {
+        Route::get('me', [PlayerController::class, 'me']);
+        Route::put('{player}', [PlayerController::class, 'update']);
+    });
+
     // Outras rotas protegidas da API podem ser adicionadas aqui
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
+});
+
+// Rotas públicas de jogadores
+Route::prefix('players')->group(function () {
+    Route::get('/', [PlayerController::class, 'index']);
+    Route::get('{player}', [PlayerController::class, 'show']);
 });

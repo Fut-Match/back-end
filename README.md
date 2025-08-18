@@ -1,61 +1,283 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# ⚽ Fut Match API
 
 <p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+  <img src="https://img.shields.io/badge/Laravel-12.0-red?style=for-the-badge&logo=laravel" alt="Laravel">
+  <img src="https://img.shields.io/badge/PHP-8.2+-blue?style=for-the-badge&logo=php" alt="PHP">
+  <img src="https://img.shields.io/badge/PostgreSQL-15-blue?style=for-the-badge&logo=postgresql" alt="PostgreSQL">
+  <img src="https://img.shields.io/badge/Status-Em%20Desenvolvimento-yellow?style=for-the-badge" alt="Status">
 </p>
 
-## About Laravel
+## 📋 Sobre o Projeto
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+**Fut Match** é uma API REST desenvolvida em Laravel para gerenciamento de jogadores de futebol e partidas. O sistema foca na experiência do jogador como entidade principal, permitindo o acompanhamento de estatísticas, organização de partidas e gestão de perfis de jogadores.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## 🚀 Funcionalidades Principais
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### ✅ Implementadas
+- **Autenticação JWT** com Laravel Sanctum
+- **Gestão de Usuários** (registro, login, logout)
+- **Perfil de Jogadores** automático para cada usuário
+- **Estatísticas de Jogadores** (gols, assistências, desarmes, MVPs, etc.)
+- **API RESTful** completa
+- **Documentação Swagger** automática
 
-## Learning Laravel
+### 🔄 Em Desenvolvimento
+- Gestão de Partidas
+- Sistema de Times
+- Ranking de Jogadores
+- Histórico de Partidas
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## 🛠️ Stack Tecnológica
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+### Backend/API
+- **PHP**: ^8.2
+- **Laravel Framework**: ^12.0
+- **Laravel Sanctum**: ^4.2 (Autenticação via API tokens)
+- **PostgreSQL**: 15 (Banco de dados principal)
+- **L5-Swagger**: ^9.0 (Documentação automática da API)
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### Build Tools
+- **Vite**: ^7.0.4
+- **TailwindCSS**: ^4.0.0
+- **Laravel Vite Plugin**: ^2.0.0
 
-## Laravel Sponsors
+### Ferramentas de Desenvolvimento
+- **Laravel Pint**: Formatação de código PHP
+- **Laravel Sail**: Ambiente Docker
+- **PHPUnit**: ^11.5.3 (Testes)
+- **Faker**: Geração de dados fake para testes
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## 🗃️ Estrutura do Banco de Dados
 
-### Premium Partners
+### Users (Usuários)
+- `id`, `name`, `email`, `password`
+- `email_verified_at`, `remember_token`
+- `created_at`, `updated_at`
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+### Players (Jogadores)
+- `id`, `user_id` (FK)
+- `name`, `image`, `nickname`
+- `goals`, `assists`, `tackles`, `mvps`
+- `wins`, `matches`, `average_rating`
+- `created_at`, `updated_at`
 
-## Contributing
+## 🔗 Endpoints da API
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### Autenticação
+```
+POST   /api/auth/register    # Registrar novo usuário
+POST   /api/auth/login       # Login de usuário
+GET    /api/auth/user        # Dados do usuário autenticado
+POST   /api/auth/logout      # Logout
+POST   /api/auth/logout-all  # Logout de todos os dispositivos
+```
 
-## Code of Conduct
+### Jogadores
+```
+GET    /api/players          # Listar todos os jogadores (público)
+GET    /api/players/{id}     # Exibir jogador específico (público)
+GET    /api/players/me       # Meu perfil de jogador (autenticado)
+PUT    /api/players/{id}     # Atualizar jogador (apenas próprio)
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## 🚀 Instalação e Configuração
 
-## Security Vulnerabilities
+### Pré-requisitos
+- PHP 8.2+
+- Composer
+- PostgreSQL 15+
+- Docker (opcional)
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### 1. Clonar o repositório
+```bash
+git clone https://github.com/Fut-Match/back-end.git
+cd back-end
+```
 
-## License
+### 2. Instalar dependências
+```bash
+composer install
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT)
+### 3. Configurar ambiente
+```bash
+cp .env.example .env
+php artisan key:generate
+```
+
+### 4. Configurar banco de dados
+Edite o arquivo `.env` com suas credenciais do PostgreSQL:
+```env
+DB_CONNECTION=pgsql
+DB_HOST=127.0.0.1
+DB_PORT=5432
+DB_DATABASE=futmatch
+DB_USERNAME=postgres
+DB_PASSWORD=sua_senha
+```
+
+### 5. Executar migrations
+```bash
+php artisan migrate
+```
+
+### 6. Gerar documentação da API
+```bash
+php artisan l5-swagger:generate
+```
+
+### 7. Iniciar servidor
+```bash
+php artisan serve
+```
+
+A API estará disponível em `http://localhost:8000`
+
+## 🐳 Docker (Opcional)
+
+Se preferir usar Docker para o PostgreSQL:
+
+```bash
+# Iniciar container PostgreSQL
+docker run --name futmatch-postgres \
+  -e POSTGRES_DB=futmatch \
+  -e POSTGRES_USER=postgres \
+  -e POSTGRES_PASSWORD=postgres \
+  -p 5432:5432 \
+  -d postgres:15-alpine
+```
+
+## 📖 Documentação da API
+
+Após gerar a documentação Swagger, acesse:
+- **Documentação Swagger**: `http://localhost:8000/api/documentation`
+- **JSON da API**: `http://localhost:8000/api/documentation.json`
+
+## 🧪 Executar Testes
+
+### Configurar banco de teste
+```bash
+# Criar banco de teste
+docker exec futmatch-postgres createdb -U postgres futmatch_test
+
+# Ou via psql
+createdb -U postgres futmatch_test
+```
+
+### Executar testes
+```bash
+# Todos os testes
+php artisan test
+
+# Testes específicos
+php artisan test --filter=PlayerTest
+
+# Com coverage
+php artisan test --coverage
+```
+
+## 🏗️ Estrutura do Projeto
+
+```
+app/
+├── Http/
+│   ├── Controllers/
+│   │   ├── Api/
+│   │   │   └── AuthController.php
+│   │   ├── PlayerController.php
+│   │   └── HealthController.php
+│   └── Requests/
+├── Models/
+│   ├── User.php
+│   └── Player.php
+└── Observers/
+    └── UserObserver.php
+
+database/
+├── factories/
+│   ├── UserFactory.php
+│   └── PlayerFactory.php
+├── migrations/
+└── seeders/
+
+tests/
+├── Feature/
+│   └── PlayerTest.php
+└── Unit/
+```
+
+## 📝 Convenções de Desenvolvimento
+
+### Nomenclatura
+- **Variáveis**: Inglês (ex: `$playerName`, `$matchDate`)
+- **Comentários**: Português
+- **Métodos**: CamelCase em inglês
+- **Classes**: PascalCase em inglês
+- **Tabelas**: Plural em inglês
+- **Colunas**: Snake_case em inglês
+
+### Padrões
+- Autenticação via Laravel Sanctum
+- Documentação Swagger obrigatória
+- Testes para funcionalidades críticas
+- Validação com Form Requests
+- Respostas JSON padronizadas
+
+## 🔧 Comandos Úteis
+
+```bash
+# Gerar documentação Swagger
+php artisan l5-swagger:generate
+
+# Executar testes
+php artisan test
+
+# Formatação de código
+./vendor/bin/pint
+
+# Limpar cache
+php artisan optimize:clear
+
+# Verificar rotas
+php artisan route:list
+
+# Executar migrations
+php artisan migrate
+
+# Rollback migrations
+php artisan migrate:rollback
+```
+
+## 🤝 Contribuição
+
+1. Fork o projeto
+2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
+3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
+4. Push para a branch (`git push origin feature/AmazingFeature`)
+5. Abra um Pull Request
+
+### Diretrizes de Contribuição
+- Siga as convenções de nomenclatura do projeto
+- Escreva testes para novas funcionalidades
+- Documente endpoints com Swagger
+- Use Laravel Pint para formatação
+- Comentários em português, código em inglês
+
+## 📄 Licença
+
+Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+
+## 👥 Equipe
+
+- **Desenvolvedor Principal**: [Seu Nome]
+- **Repositório**: [Fut-Match/back-end](https://github.com/Fut-Match/back-end)
+
+## 📞 Suporte
+
+Para suporte, entre em contato através dos issues do GitHub ou envie um email para [seu-email@example.com].
+
+---
+
+<p align="center">
+  Feito com ❤️ e ⚽ pela equipe Fut Match
+</p>
