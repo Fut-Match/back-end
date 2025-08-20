@@ -65,8 +65,8 @@
 
 ### Autenticação
 ```
-POST   /api/auth/register    # Registrar novo usuário
-POST   /api/auth/login       # Login de usuário
+POST   /api/register        # Registrar novo usuário
+POST   /api/login           # Login de usuário
 GET    /api/auth/user        # Dados do usuário autenticado
 POST   /api/auth/logout      # Logout
 POST   /api/auth/logout-all  # Logout de todos os dispositivos

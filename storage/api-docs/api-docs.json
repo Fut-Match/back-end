@@ -19,7 +19,7 @@
         }
     ],
     "paths": {
-        "/api/auth/register": {
+        "/api/register": {
             "post": {
                 "tags": [
                     "Authentication"

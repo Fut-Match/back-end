@@ -22,7 +22,7 @@ class AuthController extends Controller
 {
     /**
      * @OA\Post(
-     *     path="/api/auth/register",
+     *     path="/api/register",
      *     summary="Registrar novo usuário",
      *     description="Cria uma nova conta de usuário",
      *     tags={"Authentication"},
