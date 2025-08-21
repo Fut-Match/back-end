@@ -1,7 +1,9 @@
 <?php
 
-use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Auth\VerifyEmailController;
 use App\Http\Controllers\HealthController;
+use App\Http\Controllers\PlayerController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -20,22 +22,29 @@ use Illuminate\Support\Facades\Route;
 Route::get('health', [HealthController::class, 'status']);
 
 // Rotas públicas de autenticação
-Route::prefix('auth')->group(function () {
-    Route::post('register', [AuthController::class, 'register']);
-    Route::post('login', [AuthController::class, 'login']);
-});
+Route::post('register', [AuthController::class, 'register']);
+Route::post('login', [AuthController::class, 'login']);
+Route::post('email/verification-notification', [AuthController::class, 'resendVerificationEmail']);
 
 // Rotas protegidas por autenticação
 Route::middleware('auth:sanctum')->group(function () {
     // Rotas de autenticação que precisam de token
-    Route::prefix('auth')->group(function () {
-        Route::get('user', [AuthController::class, 'user']);
-        Route::post('logout', [AuthController::class, 'logout']);
-        Route::post('logout-all', [AuthController::class, 'logoutAll']);
+    Route::post('logout', [AuthController::class, 'logout']);
+
+    // Rotas de jogadores protegidas
+    Route::prefix('players')->group(function () {
+        Route::get('me', [PlayerController::class, 'me']);
+        Route::put('{player}', [PlayerController::class, 'update']);
     });
 
     // Outras rotas protegidas da API podem ser adicionadas aqui
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
+});
+
+// Rotas públicas de jogadores
+Route::prefix('players')->group(function () {
+    Route::get('/', [PlayerController::class, 'index']);
+    Route::get('{player}', [PlayerController::class, 'show']);
 });

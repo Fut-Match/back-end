@@ -2,13 +2,15 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use App\Notifications\VerifyEmailPtBr;
 use Laravel\Sanctum\HasApiTokens;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasApiTokens, HasFactory, Notifiable;
@@ -46,4 +48,22 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    /**
+     * Envia a notificação de verificação de e-mail em português
+     */
+    public function sendEmailVerificationNotification()
+    {
+        $this->notify(new VerifyEmailPtBr());
+    }
+
+    /**
+     * Relacionamento com jogador
+     * Cada usuário tem um jogador
+     */
+    public function player(): HasOne
+    {
+        return $this->hasOne(Player::class);
+    }
+    
 }
