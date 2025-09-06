@@ -23,7 +23,7 @@ return [
         ? [
             'https://front-end-murex-nu.vercel.app',
             'https://back-end-production-c28b.up.railway.app',
-            'https://localhost:8080',
+            'http://localhost:8080',
         ] 
         : [
             'http://localhost:3000',
