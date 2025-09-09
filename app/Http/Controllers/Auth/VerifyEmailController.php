@@ -3,9 +3,10 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Auth\Events\Verified;
-use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\URL;
 
 /**
  * @OA\Tag(
@@ -38,10 +39,29 @@ class VerifyEmailController extends Controller
      *     @OA\Response(response="400", description="Link inválido ou expirado")
      * )
      */
-    public function verify(EmailVerificationRequest $request)
+    public function verify(Request $request, $id, $hash)
     {
+        // Buscar o usuário pelo ID
+        $user = User::findOrFail($id);
+
+        // Verificar se o hash está correto (validação de assinatura)
+        if (! hash_equals($hash, sha1($user->getEmailForVerification()))) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Link de verificação inválido'
+            ], 400);
+        }
+
+        // Verificar se a URL está assinada corretamente
+        if (! URL::hasValidSignature($request)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Link de verificação expirado ou inválido'
+            ], 400);
+        }
+
         // Verificar se o email já foi verificado
-        if ($request->user()->hasVerifiedEmail()) {
+        if ($user->hasVerifiedEmail()) {
             return response()->json([
                 'success' => true,
                 'message' => 'Email já foi verificado anteriormente'
@@ -49,8 +69,8 @@ class VerifyEmailController extends Controller
         }
 
         // Marcar email como verificado
-        if ($request->user()->markEmailAsVerified()) {
-            event(new Verified($request->user()));
+        if ($user->markEmailAsVerified()) {
+            event(new Verified($user));
         }
 
         return response()->json([

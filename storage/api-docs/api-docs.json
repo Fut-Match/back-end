@@ -25,8 +25,8 @@
                     "Authentication"
                 ],
                 "summary": "Registrar novo usuário",
-                "description": "Cria uma nova conta de usuário",
-                "operationId": "c7bb21a0d87049e161b8e4c9b0d909f2",
+                "description": "Cria uma nova conta de usuário e envia email de verificação",
+                "operationId": "8e4e3cb7b46126f4696379d3c7eeb4ad",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -77,7 +77,7 @@
                                         },
                                         "message": {
                                             "type": "string",
-                                            "example": "Usuário criado com sucesso"
+                                            "example": "Usuário registrado com sucesso. Verifique seu email para ativar a conta."
                                         },
                                         "data": {
                                             "properties": {
@@ -94,25 +94,13 @@
                                                         "email": {
                                                             "type": "string",
                                                             "example": "joao@exemplo.com"
-                                                        },
-                                                        "created_at": {
-                                                            "type": "string",
-                                                            "format": "date-time"
-                                                        },
-                                                        "updated_at": {
-                                                            "type": "string",
-                                                            "format": "date-time"
                                                         }
                                                     },
                                                     "type": "object"
                                                 },
-                                                "token": {
-                                                    "type": "string",
-                                                    "example": "1|abc123..."
-                                                },
-                                                "token_type": {
-                                                    "type": "string",
-                                                    "example": "Bearer"
+                                                "email_verified": {
+                                                    "type": "boolean",
+                                                    "example": false
                                                 }
                                             },
                                             "type": "object"
@@ -149,14 +137,14 @@
                 }
             }
         },
-        "/api/auth/login": {
+        "/api/login": {
             "post": {
                 "tags": [
                     "Authentication"
                 ],
                 "summary": "Fazer login",
-                "description": "Autentica um usuário e retorna um token de acesso",
-                "operationId": "dd51a484b7fa0f97c7680fdbde14cf5f",
+                "description": "Autentica um usuário (email deve estar verificado) e retorna um token de acesso",
+                "operationId": "222b2625838e3c57e017987f73598fda",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -232,6 +220,10 @@
                                                 "token_type": {
                                                     "type": "string",
                                                     "example": "Bearer"
+                                                },
+                                                "email_verified": {
+                                                    "type": "boolean",
+                                                    "example": true
                                                 }
                                             },
                                             "type": "object"
@@ -255,6 +247,30 @@
                                         "message": {
                                             "type": "string",
                                             "example": "Credenciais inválidas"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Email não verificado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Email não verificado. Verifique seu email antes de fazer login."
+                                        },
+                                        "email_verified": {
+                                            "type": "boolean",
+                                            "example": false
                                         }
                                     },
                                     "type": "object"
@@ -420,14 +436,14 @@
                 ]
             }
         },
-        "/api/auth/logout-all": {
+        "/api/logout-all": {
             "post": {
                 "tags": [
                     "Authentication"
                 ],
                 "summary": "Fazer logout de todos os dispositivos",
                 "description": "Revoga todos os tokens de acesso do usuário",
-                "operationId": "cb4dc83917db0d5fff6f1f5a2562c05b",
+                "operationId": "80c435a29536ed8ccfefb79855f570ff",
                 "responses": {
                     "200": {
                         "description": "Logout de todos os dispositivos realizado com sucesso",
@@ -471,6 +487,134 @@
                         "sanctum": []
                     }
                 ]
+            }
+        },
+        "/api/email/verification-notification": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Reenviar email de verificação",
+                "description": "Reenvia o email de verificação para o usuário",
+                "operationId": "2d7da42bff2ed492f20782954979cdc9",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "joao@exemplo.com"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Email de verificação enviado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Email de verificação reenviado com sucesso"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Email já verificado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Email já foi verificado"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Usuário não encontrado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Usuário não encontrado"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/email/verify/{id}/{hash}": {
+            "get": {
+                "tags": [
+                    "Email Verification"
+                ],
+                "summary": "Verifica email através do link",
+                "description": "Verificar email através do link enviado",
+                "operationId": "80503b7246cd847e6f41c7dcd2797a98",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "hash",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Email verificado com sucesso"
+                    },
+                    "400": {
+                        "description": "Link inválido ou expirado"
+                    }
+                }
             }
         },
         "/api/health": {
@@ -747,9 +891,591 @@
                     }
                 ]
             }
+        },
+        "/api/users": {
+            "get": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Lista todos os usuários",
+                "description": "Retorna uma lista paginada de todos os usuários do sistema",
+                "operationId": "c457726701591d1183b53aa71fc13441",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Número da página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 1,
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Itens por página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 15,
+                            "maximum": 100,
+                            "minimum": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de usuários retornada com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Usuários listados com sucesso"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "current_page": {
+                                                    "type": "integer"
+                                                },
+                                                "per_page": {
+                                                    "type": "integer"
+                                                },
+                                                "total": {
+                                                    "type": "integer"
+                                                },
+                                                "data": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/User"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autorizado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Cria um novo usuário",
+                "description": "Cria um novo usuário no sistema",
+                "operationId": "592819a0265360b2014512d6dbfaf0e7",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "description": "Nome completo do usuário",
+                                        "type": "string",
+                                        "example": "João Silva"
+                                    },
+                                    "email": {
+                                        "description": "Email do usuário",
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "joao@example.com"
+                                    },
+                                    "password": {
+                                        "description": "Senha do usuário (mínimo 8 caracteres)",
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "12345678"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Usuário criado com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Usuário criado com sucesso"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/User"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Dados de validação inválidos"
+                    },
+                    "401": {
+                        "description": "Não autorizado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/users/{user}": {
+            "get": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Exibe um usuário específico",
+                "description": "Retorna os dados de um usuário específico pelo ID",
+                "operationId": "d3a14968f8b7a072620c75c7c78ed6f8",
+                "parameters": [
+                    {
+                        "name": "user",
+                        "in": "path",
+                        "description": "ID do usuário",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Usuário encontrado com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Usuário encontrado com sucesso"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/User"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Usuário não encontrado"
+                    },
+                    "401": {
+                        "description": "Não autorizado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Atualiza um usuário existente",
+                "description": "Atualiza os dados de um usuário existente (configurações do aplicativo)",
+                "operationId": "e29fc231c7937ab09483d35e6e3d1214",
+                "parameters": [
+                    {
+                        "name": "user",
+                        "in": "path",
+                        "description": "ID do usuário",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "description": "Nome completo do usuário",
+                                        "type": "string",
+                                        "example": "João Silva"
+                                    },
+                                    "email": {
+                                        "description": "Email do usuário",
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "joao@example.com"
+                                    },
+                                    "password": {
+                                        "description": "Nova senha do usuário (mínimo 8 caracteres)",
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "12345678"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Usuário atualizado com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Usuário atualizado com sucesso"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/User"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Dados de validação inválidos"
+                    },
+                    "404": {
+                        "description": "Usuário não encontrado"
+                    },
+                    "401": {
+                        "description": "Não autorizado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Remove um usuário",
+                "description": "Remove um usuário e automaticamente remove o player vinculado (se existir)",
+                "operationId": "e0f9a385a1d6788b99e519bd98cf7239",
+                "parameters": [
+                    {
+                        "name": "user",
+                        "in": "path",
+                        "description": "ID do usuário",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Usuário removido com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Usuário removido com sucesso"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Usuário não encontrado"
+                    },
+                    "401": {
+                        "description": "Não autorizado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/users/me": {
+            "get": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Dados do usuário autenticado",
+                "description": "Retorna os dados completos do usuário atualmente autenticado",
+                "operationId": "4917cc84ad78f7572292b07e6fbe4bce",
+                "responses": {
+                    "200": {
+                        "description": "Dados do usuário retornados com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Dados do usuário autenticado"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/User"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autorizado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
         }
     },
     "components": {
+        "schemas": {
+            "Player": {
+                "title": "Player",
+                "description": "Modelo de jogador do sistema",
+                "required": [
+                    "id",
+                    "user_id",
+                    "name",
+                    "created_at",
+                    "updated_at"
+                ],
+                "properties": {
+                    "id": {
+                        "description": "ID único do jogador",
+                        "type": "integer",
+                        "format": "int64",
+                        "example": 1
+                    },
+                    "user_id": {
+                        "description": "ID do usuário vinculado",
+                        "type": "integer",
+                        "format": "int64",
+                        "example": 1
+                    },
+                    "name": {
+                        "description": "Nome do jogador",
+                        "type": "string",
+                        "maxLength": 255,
+                        "example": "João Silva"
+                    },
+                    "image": {
+                        "description": "URL da imagem do jogador",
+                        "type": "string",
+                        "example": "https://example.com/avatar.jpg",
+                        "nullable": true
+                    },
+                    "nickname": {
+                        "description": "Apelido do jogador",
+                        "type": "string",
+                        "example": "Joãozinho",
+                        "nullable": true
+                    },
+                    "goals": {
+                        "description": "Total de gols marcados",
+                        "type": "integer",
+                        "minimum": 0,
+                        "example": 15
+                    },
+                    "assists": {
+                        "description": "Total de assistências",
+                        "type": "integer",
+                        "minimum": 0,
+                        "example": 8
+                    },
+                    "tackles": {
+                        "description": "Total de desarmes",
+                        "type": "integer",
+                        "minimum": 0,
+                        "example": 25
+                    },
+                    "mvps": {
+                        "description": "Total de MVPs",
+                        "type": "integer",
+                        "minimum": 0,
+                        "example": 3
+                    },
+                    "wins": {
+                        "description": "Total de vitórias",
+                        "type": "integer",
+                        "minimum": 0,
+                        "example": 12
+                    },
+                    "matches": {
+                        "description": "Total de partidas jogadas",
+                        "type": "integer",
+                        "minimum": 0,
+                        "example": 20
+                    },
+                    "average_rating": {
+                        "description": "Nota média do jogador",
+                        "type": "number",
+                        "format": "float",
+                        "maximum": 10,
+                        "minimum": 0,
+                        "example": 7.85
+                    },
+                    "win_percentage": {
+                        "description": "Porcentagem de vitórias (calculado automaticamente)",
+                        "type": "number",
+                        "format": "float",
+                        "maximum": 100,
+                        "minimum": 0,
+                        "example": 60
+                    },
+                    "created_at": {
+                        "description": "Data e hora de criação do jogador",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-01-15T10:30:00Z"
+                    },
+                    "updated_at": {
+                        "description": "Data e hora da última atualização",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-01-15T10:30:00Z"
+                    },
+                    "user": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/User"
+                            }
+                        ],
+                        "nullable": true,
+                        "description": "Dados do usuário vinculado ao jogador"
+                    }
+                },
+                "type": "object"
+            },
+            "User": {
+                "title": "User",
+                "description": "Modelo de usuário do sistema",
+                "required": [
+                    "id",
+                    "name",
+                    "email",
+                    "created_at",
+                    "updated_at"
+                ],
+                "properties": {
+                    "id": {
+                        "description": "ID único do usuário",
+                        "type": "integer",
+                        "format": "int64",
+                        "example": 1
+                    },
+                    "name": {
+                        "description": "Nome completo do usuário",
+                        "type": "string",
+                        "maxLength": 255,
+                        "example": "João Silva"
+                    },
+                    "email": {
+                        "description": "Email do usuário",
+                        "type": "string",
+                        "format": "email",
+                        "maxLength": 255,
+                        "example": "joao@example.com"
+                    },
+                    "email_verified_at": {
+                        "description": "Data e hora da verificação do email",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-01-15T10:30:00Z",
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "description": "Data e hora de criação do usuário",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-01-15T10:30:00Z"
+                    },
+                    "updated_at": {
+                        "description": "Data e hora da última atualização",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-01-15T10:30:00Z"
+                    },
+                    "player": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/Player"
+                            }
+                        ],
+                        "nullable": true,
+                        "description": "Dados do jogador vinculado ao usuário"
+                    }
+                },
+                "type": "object"
+            }
+        },
         "securitySchemes": {
             "sanctum": {
                 "type": "http",
@@ -765,8 +1491,16 @@
             "description": "Endpoints para autenticação de usuários"
         },
         {
+            "name": "Email Verification",
+            "description": "Operações de verificação de email"
+        },
+        {
             "name": "Players",
             "description": "Operações relacionadas aos jogadores"
+        },
+        {
+            "name": "Users",
+            "description": "Operações relacionadas aos usuários do sistema"
         },
         {
             "name": "Health",

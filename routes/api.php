@@ -1,9 +1,10 @@
 <?php
 
-use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use App\Http\Controllers\HealthController;
 use App\Http\Controllers\PlayerController;
+use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -30,6 +31,18 @@ Route::post('email/verification-notification', [AuthController::class, 'resendVe
 Route::middleware('auth:sanctum')->group(function () {
     // Rotas de autenticação que precisam de token
     Route::post('logout', [AuthController::class, 'logout']);
+    Route::post('logout-all', [AuthController::class, 'logoutAll']);
+    Route::get('user', [AuthController::class, 'user']);
+
+    // Rotas de usuários protegidas
+    Route::prefix('users')->group(function () {
+        Route::get('me', [UserController::class, 'me']);
+        Route::get('/', [UserController::class, 'index']);
+        Route::post('/', [UserController::class, 'store']);
+        Route::get('{user}', [UserController::class, 'show']);
+        Route::put('{user}', [UserController::class, 'update']);
+        Route::delete('{user}', [UserController::class, 'destroy']);
+    });
 
     // Rotas de jogadores protegidas
     Route::prefix('players')->group(function () {

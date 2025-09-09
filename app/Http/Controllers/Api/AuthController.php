@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Models\User;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -24,7 +25,7 @@ class AuthController extends Controller
      * @OA\Post(
      *     path="/api/register",
      *     summary="Registrar novo usuário",
-     *     description="Cria uma nova conta de usuário",
+     *     description="Cria uma nova conta de usuário e envia email de verificação",
      *     tags={"Authentication"},
      *     @OA\RequestBody(
      *         required=true,
@@ -41,17 +42,14 @@ class AuthController extends Controller
      *         description="Usuário criado com sucesso",
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(property="message", type="string", example="Usuário criado com sucesso"),
+     *             @OA\Property(property="message", type="string", example="Usuário registrado com sucesso. Verifique seu email para ativar a conta."),
      *             @OA\Property(property="data", type="object",
      *                 @OA\Property(property="user", type="object",
      *                     @OA\Property(property="id", type="integer", example=1),
      *                     @OA\Property(property="name", type="string", example="João Silva"),
-     *                     @OA\Property(property="email", type="string", example="joao@exemplo.com"),
-     *                     @OA\Property(property="created_at", type="string", format="date-time"),
-     *                     @OA\Property(property="updated_at", type="string", format="date-time")
+     *                     @OA\Property(property="email", type="string", example="joao@exemplo.com")
      *                 ),
-     *                 @OA\Property(property="token", type="string", example="1|abc123..."),
-     *                 @OA\Property(property="token_type", type="string", example="Bearer")
+     *                 @OA\Property(property="email_verified", type="boolean", example=false)
      *             )
      *         )
      *     ),
@@ -74,26 +72,24 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        // Token expira em 24 horas (1440 minutos)
-        $token = $user->createToken('auth_token', ['*'], now()->addDay())->plainTextToken;
+        // Disparar evento de registro (que enviará o email de verificação)
+        event(new Registered($user));
 
         return response()->json([
             'success' => true,
-            'message' => 'Usuário criado com sucesso',
+            'message' => 'Usuário registrado com sucesso. Verifique seu email para ativar a conta.',
             'data' => [
-                'user' => $user,
-                'token' => $token,
-                'token_type' => 'Bearer',
-                'expires_in' => 86400, // segundos (24 horas)
-            ],
+                'user' => $user->only(['id', 'name', 'email']),
+                'email_verified' => false
+            ]
         ], 201);
     }
 
     /**
      * @OA\Post(
-     *     path="/api/auth/login",
+     *     path="/api/login",
      *     summary="Fazer login",
-     *     description="Autentica um usuário e retorna um token de acesso",
+     *     description="Autentica um usuário (email deve estar verificado) e retorna um token de acesso",
      *     tags={"Authentication"},
      *     @OA\RequestBody(
      *         required=true,
@@ -118,7 +114,8 @@ class AuthController extends Controller
      *                     @OA\Property(property="updated_at", type="string", format="date-time")
      *                 ),
      *                 @OA\Property(property="token", type="string", example="1|abc123..."),
-     *                 @OA\Property(property="token_type", type="string", example="Bearer")
+     *                 @OA\Property(property="token_type", type="string", example="Bearer"),
+     *                 @OA\Property(property="email_verified", type="boolean", example=true)
      *             )
      *         )
      *     ),
@@ -128,6 +125,15 @@ class AuthController extends Controller
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=false),
      *             @OA\Property(property="message", type="string", example="Credenciais inválidas")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Email não verificado",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Email não verificado. Verifique seu email antes de fazer login."),
+     *             @OA\Property(property="email_verified", type="boolean", example=false)
      *         )
      *     ),
      *     @OA\Response(
@@ -144,12 +150,24 @@ class AuthController extends Controller
     public function login(LoginRequest $request): JsonResponse
     {
         if (!Auth::attempt($request->only('email', 'password'))) {
-            throw ValidationException::withMessages([
-                'email' => ['Credenciais inválidas.'],
-            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Credenciais inválidas'
+            ], 401);
         }
 
         $user = Auth::user();
+
+        // Verificar se o email foi verificado
+        if (!$user->hasVerifiedEmail()) {
+            Auth::logout();
+            return response()->json([
+                'success' => false,
+                'message' => 'Email não verificado. Verifique seu email antes de fazer login.',
+                'email_verified' => false
+            ], 403);
+        }
+
         // Token expira em 24 horas
         $token = $user->createToken('auth_token', ['*'], now()->addDay())->plainTextToken;
 
@@ -161,6 +179,7 @@ class AuthController extends Controller
                 'token' => $token,
                 'token_type' => 'Bearer',
                 'expires_in' => 86400, // segundos (24 horas)
+                'email_verified' => true
             ],
         ]);
     }
@@ -243,7 +262,7 @@ class AuthController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/api/auth/logout-all",
+     *     path="/api/logout-all",
      *     summary="Fazer logout de todos os dispositivos",
      *     description="Revoga todos os tokens de acesso do usuário",
      *     tags={"Authentication"},
@@ -273,5 +292,76 @@ class AuthController extends Controller
             'success' => true,
             'message' => 'Logout de todos os dispositivos realizado com sucesso',
         ]);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/api/email/verification-notification",
+     *     summary="Reenviar email de verificação",
+     *     description="Reenvia o email de verificação para o usuário",
+     *     tags={"Authentication"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"email"},
+     *             @OA\Property(property="email", type="string", format="email", example="joao@exemplo.com")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Email de verificação enviado",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Email de verificação reenviado com sucesso")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Email já verificado",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Email já foi verificado")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Usuário não encontrado",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Usuário não encontrado")
+     *         )
+     *     )
+     * )
+     */
+    public function resendVerificationEmail(Request $request): JsonResponse
+    {
+        $request->validate([
+            'email' => ['required', 'email'],
+        ], [
+            'email.required' => 'O email é obrigatório',
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Usuário não encontrado'
+            ], 404);
+        }
+
+        if ($user->hasVerifiedEmail()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Email já foi verificado'
+            ], 400);
+        }
+
+        $user->sendEmailVerificationNotification();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Email de verificação reenviado com sucesso'
+        ], 200);
     }
 }

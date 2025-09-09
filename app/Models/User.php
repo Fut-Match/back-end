@@ -65,5 +65,19 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasOne(Player::class);
     }
+
+    /**
+     * Boot method para configurar eventos do modelo
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Quando um usuário for deletado, o player será automaticamente
+        // deletado devido ao cascade na foreign key da migration
+        static::deleting(function ($user) {
+            // Log ou outras ações podem ser adicionadas aqui se necessário
+        });
+    }
     
 }
