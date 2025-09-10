@@ -647,6 +647,307 @@
                 }
             }
         },
+        "/api/matches": {
+            "get": {
+                "tags": [
+                    "Matches"
+                ],
+                "summary": "Lista todas as partidas",
+                "description": "Retorna uma lista paginada de todas as partidas",
+                "operationId": "57a216ed6c2e9c434e2007edd6790814",
+                "parameters": [
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Filtrar por status da partida",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "waiting",
+                                "in_progress",
+                                "finished",
+                                "cancelled"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de partidas retornada com sucesso"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Matches"
+                ],
+                "summary": "Cria uma nova partida",
+                "description": "Cria uma nova partida de futebol",
+                "operationId": "037ca43d75d0564df5a9dcb2c6ca501a",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "match_date",
+                                    "match_time",
+                                    "location",
+                                    "players_count",
+                                    "end_mode"
+                                ],
+                                "properties": {
+                                    "match_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2025-09-15"
+                                    },
+                                    "match_time": {
+                                        "type": "string",
+                                        "format": "time",
+                                        "example": "18:00"
+                                    },
+                                    "location": {
+                                        "type": "string",
+                                        "example": "Campo do Botafogo"
+                                    },
+                                    "players_count": {
+                                        "type": "string",
+                                        "enum": [
+                                            "3vs3",
+                                            "5vs5",
+                                            "6vs6"
+                                        ]
+                                    },
+                                    "end_mode": {
+                                        "type": "string",
+                                        "enum": [
+                                            "goals",
+                                            "time",
+                                            "both"
+                                        ]
+                                    },
+                                    "goal_limit": {
+                                        "type": "integer",
+                                        "example": 5
+                                    },
+                                    "time_limit": {
+                                        "type": "integer",
+                                        "example": 90
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Partida criada com sucesso"
+                    },
+                    "422": {
+                        "description": "Dados de validação inválidos"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/matches/{id}": {
+            "get": {
+                "tags": [
+                    "Matches"
+                ],
+                "summary": "Exibe detalhes de uma partida",
+                "description": "Retorna os detalhes de uma partida específica",
+                "operationId": "496a55045627bb07d84440c12ba7f2b6",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID da partida",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detalhes da partida retornados com sucesso"
+                    },
+                    "404": {
+                        "description": "Partida não encontrada"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Matches"
+                ],
+                "summary": "Atualiza uma partida",
+                "description": "Atualiza os dados de uma partida (apenas o administrador pode atualizar)",
+                "operationId": "7ecff08fcd30fae09623847b030546a5",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID da partida",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Partida atualizada com sucesso"
+                    },
+                    "403": {
+                        "description": "Não autorizado - apenas o administrador pode atualizar"
+                    },
+                    "404": {
+                        "description": "Partida não encontrada"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Matches"
+                ],
+                "summary": "Remove uma partida",
+                "description": "Remove uma partida (apenas o administrador pode remover)",
+                "operationId": "cf254ff94f36905de7dda2f8ad98c408",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID da partida",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Partida removida com sucesso"
+                    },
+                    "403": {
+                        "description": "Não autorizado - apenas o administrador pode remover"
+                    },
+                    "404": {
+                        "description": "Partida não encontrada"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/matches/join": {
+            "post": {
+                "tags": [
+                    "Matches"
+                ],
+                "summary": "Participa de uma partida",
+                "description": "Permite que um jogador participe de uma partida usando o código",
+                "operationId": "abf1ac969ea8dd1b0d53bfb269b90af3",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "code"
+                                ],
+                                "properties": {
+                                    "code": {
+                                        "type": "string",
+                                        "example": "ABC123"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Jogador adicionado à partida com sucesso"
+                    },
+                    "400": {
+                        "description": "Erro ao participar da partida"
+                    },
+                    "404": {
+                        "description": "Partida não encontrada"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/matches/{id}/leave": {
+            "post": {
+                "tags": [
+                    "Matches"
+                ],
+                "summary": "Sai de uma partida",
+                "description": "Permite que um jogador saia de uma partida",
+                "operationId": "ac64d6e170cc66f777c5e3944b7cb2ef",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID da partida",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Jogador removido da partida com sucesso"
+                    },
+                    "400": {
+                        "description": "Erro ao sair da partida"
+                    },
+                    "404": {
+                        "description": "Partida não encontrada"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/players": {
             "get": {
                 "tags": [
@@ -1493,6 +1794,10 @@
         {
             "name": "Email Verification",
             "description": "Operações de verificação de email"
+        },
+        {
+            "name": "Matches",
+            "description": "Operações relacionadas às partidas de futebol"
         },
         {
             "name": "Players",

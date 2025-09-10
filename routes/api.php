@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use App\Http\Controllers\HealthController;
+use App\Http\Controllers\MatchController;
 use App\Http\Controllers\PlayerController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
@@ -48,6 +49,17 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('players')->group(function () {
         Route::get('me', [PlayerController::class, 'me']);
         Route::put('{player}', [PlayerController::class, 'update']);
+    });
+
+    // Rotas de partidas protegidas
+    Route::prefix('matches')->group(function () {
+        Route::get('/', [MatchController::class, 'index']);
+        Route::post('/', [MatchController::class, 'store']);
+        Route::get('{match}', [MatchController::class, 'show']);
+        Route::put('{match}', [MatchController::class, 'update']);
+        Route::delete('{match}', [MatchController::class, 'destroy']);
+        Route::post('join', [MatchController::class, 'join']);
+        Route::post('{match}/leave', [MatchController::class, 'leave']);
     });
 
     // Outras rotas protegidas da API podem ser adicionadas aqui
