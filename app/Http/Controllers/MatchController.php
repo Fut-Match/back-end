@@ -440,4 +440,369 @@ class MatchController extends Controller
             'message' => 'Você saiu da partida com sucesso'
         ]);
     }
+
+    /**
+     * Sorteia os times da partida
+     * 
+     * @OA\Post(
+     *     path="/api/matches/{id}/shuffle-teams",
+     *     tags={"Matches"},
+     *     summary="Sorteia os times",
+     *     description="Distribui aleatoriamente os jogadores em dois times (apenas o administrador pode fazer isso)",
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="ID da partida",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Times sorteados com sucesso"
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Apenas o administrador pode sortear os times"
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Não é possível sortear os times no estado atual da partida"
+     *     ),
+     *     security={{"sanctum": {}}}
+     * )
+     */
+    public function shuffleTeams(Request $request, FootballMatch $match): JsonResponse
+    {
+        $user = $request->user();
+        $player = $user->player;
+
+        if (!$player || $match->admin_id !== $player->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Apenas o administrador da partida pode sortear os times'
+            ], 403);
+        }
+
+        if ($match->status !== 'waiting') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Só é possível sortear times antes da partida iniciar'
+            ], 400);
+        }
+
+        $teams = $match->shuffleTeams();
+
+        return response()->json([
+            'success' => true,
+            'data' => $teams,
+            'message' => 'Times sorteados com sucesso'
+        ]);
+    }
+
+    /**
+     * Inicia a partida
+     * 
+     * @OA\Post(
+     *     path="/api/matches/{id}/start",
+     *     tags={"Matches"},
+     *     summary="Inicia a partida",
+     *     description="Inicia uma partida que está aguardando (apenas o administrador pode fazer isso)",
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="ID da partida",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     * @OA\Response(
+     *         response=200,
+     *         description="Partida iniciada com sucesso",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Partida iniciada com sucesso"),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(property="id", type="integer"),
+     *                 @OA\Property(property="status", type="string", example="in_progress"),
+     *                 @OA\Property(property="started_at", type="string", format="date-time"),
+     *                 @OA\Property(property="current_minute", type="integer", example=0),
+     *                 @OA\Property(property="is_paused", type="boolean", example=false)
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Apenas o administrador pode iniciar a partida"
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Não é possível iniciar a partida no estado atual"
+     *     ),
+     *     security={{"sanctum": {}}}
+     * )
+     */
+    public function startMatch(Request $request, FootballMatch $match): JsonResponse
+    {
+        $user = $request->user();
+        $player = $user->player;
+
+        if (!$player || $match->admin_id !== $player->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Apenas o administrador da partida pode iniciá-la'
+            ], 403);
+        }
+
+        if (!$match->startMatch()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Não é possível iniciar a partida no estado atual'
+            ], 400);
+        }
+
+        $match->load(['teams.players.user', 'admin.user']);
+
+        return response()->json([
+            'success' => true,
+            'data' => $match,
+            'message' => 'Partida iniciada com sucesso'
+        ]);
+    }
+
+    /**
+     * Pausa/Resume a partida
+     * 
+     * @OA\Post(
+     *     path="/api/matches/{id}/toggle-pause",
+     *     tags={"Matches"},
+     *     summary="Pausa/Resume a partida",
+     *     description="Pausa ou resume uma partida em andamento (apenas o administrador pode fazer isso)",
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="ID da partida",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Estado da partida alterado com sucesso"
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Apenas o administrador pode pausar/resumir a partida"
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Não é possível pausar/resumir a partida no estado atual"
+     *     ),
+     *     security={{"sanctum": {}}}
+     * )
+     */
+    public function togglePause(Request $request, FootballMatch $match): JsonResponse
+    {
+        $user = $request->user();
+        $player = $user->player;
+
+        if (!$player || $match->admin_id !== $player->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Apenas o administrador da partida pode pausar/resumir'
+            ], 403);
+        }
+
+        if (!$match->togglePause()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Não é possível pausar/resumir a partida no estado atual'
+            ], 400);
+        }
+
+        $status = $match->is_paused ? 'pausada' : 'resumida';
+        
+        return response()->json([
+            'success' => true,
+            'data' => $match->fresh(),
+            'message' => "Partida {$status} com sucesso"
+        ]);
+    }
+
+    /**
+     * Finaliza a partida
+     * 
+     * @OA\Post(
+     *     path="/api/matches/{id}/finish",
+     *     tags={"Matches"},
+     *     summary="Finaliza a partida",
+     *     description="Finaliza uma partida em andamento e atualiza as estatísticas dos jogadores (apenas o administrador pode fazer isso)",
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="ID da partida",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     * @OA\Response(
+     *         response=200,
+     *         description="Partida finalizada com sucesso",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Partida finalizada com sucesso"),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(property="id", type="integer"),
+     *                 @OA\Property(property="status", type="string", example="finished"),
+     *                 @OA\Property(property="finished_at", type="string", format="date-time"),
+     *                 @OA\Property(property="winning_team_id", type="integer"),
+     *                 @OA\Property(property="teams", type="array", @OA\Items(type="object")),
+     *                 @OA\Property(property="events", type="array", @OA\Items(type="object"))
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Apenas o administrador pode finalizar a partida"
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Não é possível finalizar a partida no estado atual"
+     *     ),
+     *     security={{"sanctum": {}}}
+     * )
+     */
+    public function finishMatch(Request $request, FootballMatch $match): JsonResponse
+    {
+        $user = $request->user();
+        $player = $user->player;
+
+        if (!$player || $match->admin_id !== $player->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Apenas o administrador da partida pode finalizá-la'
+            ], 403);
+        }
+
+        if (!$match->finishMatch()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Não é possível finalizar a partida no estado atual'
+            ], 400);
+        }
+
+        $match->load(['teams.players.user', 'winningTeam', 'events.player.user']);
+
+        return response()->json([
+            'success' => true,
+            'data' => $match,
+            'message' => 'Partida finalizada com sucesso'
+        ]);
+    }
+
+    /**
+     * Adiciona um evento à partida
+     * 
+     * @OA\Post(
+     *     path="/api/matches/{id}/events",
+     *     tags={"Matches"},
+     *     summary="Adiciona evento à partida",
+     *     description="Adiciona um evento (gol, assistência, desarme, defesa) durante a partida",
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="ID da partida",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"player_id", "event_type"},
+     *             @OA\Property(property="player_id", type="integer", example=1),
+     *             @OA\Property(property="event_type", type="string", enum={"goal", "assist", "tackle", "defense"}),
+     *             @OA\Property(property="minute", type="integer", example=25),
+     *             @OA\Property(property="description", type="string", example="Gol de pênalti")
+     *         )
+     *     ),
+     * @OA\Response(
+     *         response=201,
+     *         description="Evento adicionado com sucesso",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Evento adicionado com sucesso"),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(property="id", type="integer"),
+     *                 @OA\Property(property="event_type", type="string", example="goal"),
+     *                 @OA\Property(property="minute", type="integer", example=25),
+     *                 @OA\Property(property="description", type="string"),
+     *                 @OA\Property(property="player", type="object"),
+     *                 @OA\Property(property="team", type="object")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Apenas o administrador pode adicionar eventos"
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Erro ao adicionar evento"
+     *     ),
+     *     security={{"sanctum": {}}}
+     * )
+     */
+    public function addEvent(Request $request, FootballMatch $match): JsonResponse
+    {
+        $user = $request->user();
+        $player = $user->player;
+
+        if (!$player || $match->admin_id !== $player->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Apenas o administrador da partida pode adicionar eventos'
+            ], 403);
+        }
+
+        if ($match->status !== 'in_progress') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Só é possível adicionar eventos durante a partida'
+            ], 400);
+        }
+
+        $validated = $request->validate([
+            'player_id' => 'required|exists:players,id',
+            'event_type' => 'required|in:goal,assist,tackle,defense',
+            'minute' => 'nullable|integer|min:0',
+            'description' => 'nullable|string|max:255',
+        ]);
+
+        $eventPlayer = Player::find($validated['player_id']);
+        
+        // Verifica se o jogador está participando da partida
+        if (!$match->participants()->where('player_id', $eventPlayer->id)->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'O jogador não está participando desta partida'
+            ], 400);
+        }
+
+        $event = $match->addEvent(
+            $eventPlayer,
+            $validated['event_type'],
+            $validated['minute'],
+            $validated['description']
+        );
+
+        $event->load(['player.user', 'team']);
+
+        return response()->json([
+            'success' => true,
+            'data' => $event,
+            'message' => 'Evento adicionado com sucesso'
+        ], 201);
+    }
 }

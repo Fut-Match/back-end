@@ -60,6 +60,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('{match}', [MatchController::class, 'destroy']);
         Route::post('join', [MatchController::class, 'join']);
         Route::post('{match}/leave', [MatchController::class, 'leave']);
+        Route::post('{match}/shuffle-teams', [MatchController::class, 'shuffleTeams']);
+        Route::post('{match}/start', [MatchController::class, 'startMatch']);
+        Route::post('{match}/toggle-pause', [MatchController::class, 'togglePause']);
+        Route::post('{match}/finish', [MatchController::class, 'finishMatch']);
+        Route::post('{match}/events', [MatchController::class, 'addEvent']);
     });
 
     // Outras rotas protegidas da API podem ser adicionadas aqui

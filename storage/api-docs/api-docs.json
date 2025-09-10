@@ -948,6 +948,359 @@
                 ]
             }
         },
+        "/api/matches/{id}/shuffle-teams": {
+            "post": {
+                "tags": [
+                    "Matches"
+                ],
+                "summary": "Sorteia os times",
+                "description": "Distribui aleatoriamente os jogadores em dois times (apenas o administrador pode fazer isso)",
+                "operationId": "05c761e67165517df165dae4ec2be689",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID da partida",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Times sorteados com sucesso"
+                    },
+                    "403": {
+                        "description": "Apenas o administrador pode sortear os times"
+                    },
+                    "400": {
+                        "description": "Não é possível sortear os times no estado atual da partida"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/matches/{id}/start": {
+            "post": {
+                "tags": [
+                    "Matches"
+                ],
+                "summary": "Inicia a partida",
+                "description": "Inicia uma partida que está aguardando (apenas o administrador pode fazer isso)",
+                "operationId": "ea668642335a03f09c2408d10977a60a",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID da partida",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Partida iniciada com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Partida iniciada com sucesso"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "example": "in_progress"
+                                                },
+                                                "started_at": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                },
+                                                "current_minute": {
+                                                    "type": "integer",
+                                                    "example": 0
+                                                },
+                                                "is_paused": {
+                                                    "type": "boolean",
+                                                    "example": false
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Apenas o administrador pode iniciar a partida"
+                    },
+                    "400": {
+                        "description": "Não é possível iniciar a partida no estado atual"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/matches/{id}/toggle-pause": {
+            "post": {
+                "tags": [
+                    "Matches"
+                ],
+                "summary": "Pausa/Resume a partida",
+                "description": "Pausa ou resume uma partida em andamento (apenas o administrador pode fazer isso)",
+                "operationId": "e399c7ec8a91808f22d2416fb94f426f",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID da partida",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Estado da partida alterado com sucesso"
+                    },
+                    "403": {
+                        "description": "Apenas o administrador pode pausar/resumir a partida"
+                    },
+                    "400": {
+                        "description": "Não é possível pausar/resumir a partida no estado atual"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/matches/{id}/finish": {
+            "post": {
+                "tags": [
+                    "Matches"
+                ],
+                "summary": "Finaliza a partida",
+                "description": "Finaliza uma partida em andamento e atualiza as estatísticas dos jogadores (apenas o administrador pode fazer isso)",
+                "operationId": "98765f6f140918dd3e59a6b670355681",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID da partida",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Partida finalizada com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Partida finalizada com sucesso"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "example": "finished"
+                                                },
+                                                "finished_at": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                },
+                                                "winning_team_id": {
+                                                    "type": "integer"
+                                                },
+                                                "teams": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "events": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Apenas o administrador pode finalizar a partida"
+                    },
+                    "400": {
+                        "description": "Não é possível finalizar a partida no estado atual"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/matches/{id}/events": {
+            "post": {
+                "tags": [
+                    "Matches"
+                ],
+                "summary": "Adiciona evento à partida",
+                "description": "Adiciona um evento (gol, assistência, desarme, defesa) durante a partida",
+                "operationId": "718eced81338f5f6dfaf6f0304d0a254",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID da partida",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "player_id",
+                                    "event_type"
+                                ],
+                                "properties": {
+                                    "player_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "event_type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "goal",
+                                            "assist",
+                                            "tackle",
+                                            "defense"
+                                        ]
+                                    },
+                                    "minute": {
+                                        "type": "integer",
+                                        "example": 25
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Gol de pênalti"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Evento adicionado com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Evento adicionado com sucesso"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                },
+                                                "event_type": {
+                                                    "type": "string",
+                                                    "example": "goal"
+                                                },
+                                                "minute": {
+                                                    "type": "integer",
+                                                    "example": 25
+                                                },
+                                                "description": {
+                                                    "type": "string"
+                                                },
+                                                "player": {
+                                                    "type": "object"
+                                                },
+                                                "team": {
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Apenas o administrador pode adicionar eventos"
+                    },
+                    "400": {
+                        "description": "Erro ao adicionar evento"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/players": {
             "get": {
                 "tags": [
