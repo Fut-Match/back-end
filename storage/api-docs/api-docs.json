@@ -25,8 +25,8 @@
                     "Authentication"
                 ],
                 "summary": "Registrar novo usuário",
-                "description": "Cria uma nova conta de usuário",
-                "operationId": "c7bb21a0d87049e161b8e4c9b0d909f2",
+                "description": "Cria uma nova conta de usuário e envia email de verificação",
+                "operationId": "8e4e3cb7b46126f4696379d3c7eeb4ad",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -77,7 +77,7 @@
                                         },
                                         "message": {
                                             "type": "string",
-                                            "example": "Usuário criado com sucesso"
+                                            "example": "Usuário registrado com sucesso. Verifique seu email para ativar a conta."
                                         },
                                         "data": {
                                             "properties": {
@@ -94,25 +94,13 @@
                                                         "email": {
                                                             "type": "string",
                                                             "example": "joao@exemplo.com"
-                                                        },
-                                                        "created_at": {
-                                                            "type": "string",
-                                                            "format": "date-time"
-                                                        },
-                                                        "updated_at": {
-                                                            "type": "string",
-                                                            "format": "date-time"
                                                         }
                                                     },
                                                     "type": "object"
                                                 },
-                                                "token": {
-                                                    "type": "string",
-                                                    "example": "1|abc123..."
-                                                },
-                                                "token_type": {
-                                                    "type": "string",
-                                                    "example": "Bearer"
+                                                "email_verified": {
+                                                    "type": "boolean",
+                                                    "example": false
                                                 }
                                             },
                                             "type": "object"
@@ -149,14 +137,14 @@
                 }
             }
         },
-        "/api/auth/login": {
+        "/api/login": {
             "post": {
                 "tags": [
                     "Authentication"
                 ],
                 "summary": "Fazer login",
-                "description": "Autentica um usuário e retorna um token de acesso",
-                "operationId": "dd51a484b7fa0f97c7680fdbde14cf5f",
+                "description": "Autentica um usuário (email deve estar verificado) e retorna um token de acesso",
+                "operationId": "222b2625838e3c57e017987f73598fda",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -232,6 +220,10 @@
                                                 "token_type": {
                                                     "type": "string",
                                                     "example": "Bearer"
+                                                },
+                                                "email_verified": {
+                                                    "type": "boolean",
+                                                    "example": true
                                                 }
                                             },
                                             "type": "object"
@@ -255,6 +247,30 @@
                                         "message": {
                                             "type": "string",
                                             "example": "Credenciais inválidas"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Email não verificado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Email não verificado. Verifique seu email antes de fazer login."
+                                        },
+                                        "email_verified": {
+                                            "type": "boolean",
+                                            "example": false
                                         }
                                     },
                                     "type": "object"
@@ -420,14 +436,14 @@
                 ]
             }
         },
-        "/api/auth/logout-all": {
+        "/api/logout-all": {
             "post": {
                 "tags": [
                     "Authentication"
                 ],
                 "summary": "Fazer logout de todos os dispositivos",
                 "description": "Revoga todos os tokens de acesso do usuário",
-                "operationId": "cb4dc83917db0d5fff6f1f5a2562c05b",
+                "operationId": "80c435a29536ed8ccfefb79855f570ff",
                 "responses": {
                     "200": {
                         "description": "Logout de todos os dispositivos realizado com sucesso",
@@ -473,6 +489,134 @@
                 ]
             }
         },
+        "/api/email/verification-notification": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Reenviar email de verificação",
+                "description": "Reenvia o email de verificação para o usuário",
+                "operationId": "2d7da42bff2ed492f20782954979cdc9",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "joao@exemplo.com"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Email de verificação enviado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Email de verificação reenviado com sucesso"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Email já verificado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Email já foi verificado"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Usuário não encontrado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Usuário não encontrado"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/email/verify/{id}/{hash}": {
+            "get": {
+                "tags": [
+                    "Email Verification"
+                ],
+                "summary": "Verifica email através do link",
+                "description": "Verificar email através do link enviado",
+                "operationId": "80503b7246cd847e6f41c7dcd2797a98",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "hash",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Email verificado com sucesso"
+                    },
+                    "400": {
+                        "description": "Link inválido ou expirado"
+                    }
+                }
+            }
+        },
         "/api/health": {
             "get": {
                 "tags": [
@@ -501,6 +645,660 @@
                         }
                     }
                 }
+            }
+        },
+        "/api/matches": {
+            "get": {
+                "tags": [
+                    "Matches"
+                ],
+                "summary": "Lista todas as partidas",
+                "description": "Retorna uma lista paginada de todas as partidas",
+                "operationId": "57a216ed6c2e9c434e2007edd6790814",
+                "parameters": [
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Filtrar por status da partida",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "waiting",
+                                "in_progress",
+                                "finished",
+                                "cancelled"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de partidas retornada com sucesso"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Matches"
+                ],
+                "summary": "Cria uma nova partida",
+                "description": "Cria uma nova partida de futebol",
+                "operationId": "037ca43d75d0564df5a9dcb2c6ca501a",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "match_date",
+                                    "match_time",
+                                    "location",
+                                    "players_count",
+                                    "end_mode"
+                                ],
+                                "properties": {
+                                    "match_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2025-09-15"
+                                    },
+                                    "match_time": {
+                                        "type": "string",
+                                        "format": "time",
+                                        "example": "18:00"
+                                    },
+                                    "location": {
+                                        "type": "string",
+                                        "example": "Campo do Botafogo"
+                                    },
+                                    "players_count": {
+                                        "type": "string",
+                                        "enum": [
+                                            "3vs3",
+                                            "5vs5",
+                                            "6vs6"
+                                        ]
+                                    },
+                                    "end_mode": {
+                                        "type": "string",
+                                        "enum": [
+                                            "goals",
+                                            "time",
+                                            "both"
+                                        ]
+                                    },
+                                    "goal_limit": {
+                                        "type": "integer",
+                                        "example": 5
+                                    },
+                                    "time_limit": {
+                                        "type": "integer",
+                                        "example": 90
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Partida criada com sucesso"
+                    },
+                    "422": {
+                        "description": "Dados de validação inválidos"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/matches/{id}": {
+            "get": {
+                "tags": [
+                    "Matches"
+                ],
+                "summary": "Exibe detalhes de uma partida",
+                "description": "Retorna os detalhes de uma partida específica",
+                "operationId": "496a55045627bb07d84440c12ba7f2b6",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID da partida",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detalhes da partida retornados com sucesso"
+                    },
+                    "404": {
+                        "description": "Partida não encontrada"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Matches"
+                ],
+                "summary": "Atualiza uma partida",
+                "description": "Atualiza os dados de uma partida (apenas o administrador pode atualizar)",
+                "operationId": "7ecff08fcd30fae09623847b030546a5",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID da partida",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Partida atualizada com sucesso"
+                    },
+                    "403": {
+                        "description": "Não autorizado - apenas o administrador pode atualizar"
+                    },
+                    "404": {
+                        "description": "Partida não encontrada"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Matches"
+                ],
+                "summary": "Remove uma partida",
+                "description": "Remove uma partida (apenas o administrador pode remover)",
+                "operationId": "cf254ff94f36905de7dda2f8ad98c408",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID da partida",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Partida removida com sucesso"
+                    },
+                    "403": {
+                        "description": "Não autorizado - apenas o administrador pode remover"
+                    },
+                    "404": {
+                        "description": "Partida não encontrada"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/matches/join": {
+            "post": {
+                "tags": [
+                    "Matches"
+                ],
+                "summary": "Participa de uma partida",
+                "description": "Permite que um jogador participe de uma partida usando o código",
+                "operationId": "abf1ac969ea8dd1b0d53bfb269b90af3",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "code"
+                                ],
+                                "properties": {
+                                    "code": {
+                                        "type": "string",
+                                        "example": "ABC123"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Jogador adicionado à partida com sucesso"
+                    },
+                    "400": {
+                        "description": "Erro ao participar da partida"
+                    },
+                    "404": {
+                        "description": "Partida não encontrada"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/matches/{id}/leave": {
+            "post": {
+                "tags": [
+                    "Matches"
+                ],
+                "summary": "Sai de uma partida",
+                "description": "Permite que um jogador saia de uma partida",
+                "operationId": "ac64d6e170cc66f777c5e3944b7cb2ef",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID da partida",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Jogador removido da partida com sucesso"
+                    },
+                    "400": {
+                        "description": "Erro ao sair da partida"
+                    },
+                    "404": {
+                        "description": "Partida não encontrada"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/matches/{id}/shuffle-teams": {
+            "post": {
+                "tags": [
+                    "Matches"
+                ],
+                "summary": "Sorteia os times",
+                "description": "Distribui aleatoriamente os jogadores em dois times (apenas o administrador pode fazer isso)",
+                "operationId": "05c761e67165517df165dae4ec2be689",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID da partida",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Times sorteados com sucesso"
+                    },
+                    "403": {
+                        "description": "Apenas o administrador pode sortear os times"
+                    },
+                    "400": {
+                        "description": "Não é possível sortear os times no estado atual da partida"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/matches/{id}/start": {
+            "post": {
+                "tags": [
+                    "Matches"
+                ],
+                "summary": "Inicia a partida",
+                "description": "Inicia uma partida que está aguardando (apenas o administrador pode fazer isso)",
+                "operationId": "ea668642335a03f09c2408d10977a60a",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID da partida",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Partida iniciada com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Partida iniciada com sucesso"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "example": "in_progress"
+                                                },
+                                                "started_at": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                },
+                                                "current_minute": {
+                                                    "type": "integer",
+                                                    "example": 0
+                                                },
+                                                "is_paused": {
+                                                    "type": "boolean",
+                                                    "example": false
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Apenas o administrador pode iniciar a partida"
+                    },
+                    "400": {
+                        "description": "Não é possível iniciar a partida no estado atual"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/matches/{id}/toggle-pause": {
+            "post": {
+                "tags": [
+                    "Matches"
+                ],
+                "summary": "Pausa/Resume a partida",
+                "description": "Pausa ou resume uma partida em andamento (apenas o administrador pode fazer isso)",
+                "operationId": "e399c7ec8a91808f22d2416fb94f426f",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID da partida",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Estado da partida alterado com sucesso"
+                    },
+                    "403": {
+                        "description": "Apenas o administrador pode pausar/resumir a partida"
+                    },
+                    "400": {
+                        "description": "Não é possível pausar/resumir a partida no estado atual"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/matches/{id}/finish": {
+            "post": {
+                "tags": [
+                    "Matches"
+                ],
+                "summary": "Finaliza a partida",
+                "description": "Finaliza uma partida em andamento e atualiza as estatísticas dos jogadores (apenas o administrador pode fazer isso)",
+                "operationId": "98765f6f140918dd3e59a6b670355681",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID da partida",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Partida finalizada com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Partida finalizada com sucesso"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "example": "finished"
+                                                },
+                                                "finished_at": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                },
+                                                "winning_team_id": {
+                                                    "type": "integer"
+                                                },
+                                                "teams": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "events": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Apenas o administrador pode finalizar a partida"
+                    },
+                    "400": {
+                        "description": "Não é possível finalizar a partida no estado atual"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/matches/{id}/events": {
+            "post": {
+                "tags": [
+                    "Matches"
+                ],
+                "summary": "Adiciona evento à partida",
+                "description": "Adiciona um evento (gol, assistência, desarme, defesa) durante a partida",
+                "operationId": "718eced81338f5f6dfaf6f0304d0a254",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID da partida",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "player_id",
+                                    "event_type"
+                                ],
+                                "properties": {
+                                    "player_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "event_type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "goal",
+                                            "assist",
+                                            "tackle",
+                                            "defense"
+                                        ]
+                                    },
+                                    "minute": {
+                                        "type": "integer",
+                                        "example": 25
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Gol de pênalti"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Evento adicionado com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Evento adicionado com sucesso"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                },
+                                                "event_type": {
+                                                    "type": "string",
+                                                    "example": "goal"
+                                                },
+                                                "minute": {
+                                                    "type": "integer",
+                                                    "example": 25
+                                                },
+                                                "description": {
+                                                    "type": "string"
+                                                },
+                                                "player": {
+                                                    "type": "object"
+                                                },
+                                                "team": {
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Apenas o administrador pode adicionar eventos"
+                    },
+                    "400": {
+                        "description": "Erro ao adicionar evento"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
             }
         },
         "/api/players": {
@@ -747,9 +1545,591 @@
                     }
                 ]
             }
+        },
+        "/api/users": {
+            "get": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Lista todos os usuários",
+                "description": "Retorna uma lista paginada de todos os usuários do sistema",
+                "operationId": "c457726701591d1183b53aa71fc13441",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Número da página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 1,
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Itens por página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 15,
+                            "maximum": 100,
+                            "minimum": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de usuários retornada com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Usuários listados com sucesso"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "current_page": {
+                                                    "type": "integer"
+                                                },
+                                                "per_page": {
+                                                    "type": "integer"
+                                                },
+                                                "total": {
+                                                    "type": "integer"
+                                                },
+                                                "data": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/User"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autorizado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Cria um novo usuário",
+                "description": "Cria um novo usuário no sistema",
+                "operationId": "592819a0265360b2014512d6dbfaf0e7",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "description": "Nome completo do usuário",
+                                        "type": "string",
+                                        "example": "João Silva"
+                                    },
+                                    "email": {
+                                        "description": "Email do usuário",
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "joao@example.com"
+                                    },
+                                    "password": {
+                                        "description": "Senha do usuário (mínimo 8 caracteres)",
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "12345678"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Usuário criado com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Usuário criado com sucesso"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/User"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Dados de validação inválidos"
+                    },
+                    "401": {
+                        "description": "Não autorizado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/users/{user}": {
+            "get": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Exibe um usuário específico",
+                "description": "Retorna os dados de um usuário específico pelo ID",
+                "operationId": "d3a14968f8b7a072620c75c7c78ed6f8",
+                "parameters": [
+                    {
+                        "name": "user",
+                        "in": "path",
+                        "description": "ID do usuário",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Usuário encontrado com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Usuário encontrado com sucesso"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/User"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Usuário não encontrado"
+                    },
+                    "401": {
+                        "description": "Não autorizado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Atualiza um usuário existente",
+                "description": "Atualiza os dados de um usuário existente (configurações do aplicativo)",
+                "operationId": "e29fc231c7937ab09483d35e6e3d1214",
+                "parameters": [
+                    {
+                        "name": "user",
+                        "in": "path",
+                        "description": "ID do usuário",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "description": "Nome completo do usuário",
+                                        "type": "string",
+                                        "example": "João Silva"
+                                    },
+                                    "email": {
+                                        "description": "Email do usuário",
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "joao@example.com"
+                                    },
+                                    "password": {
+                                        "description": "Nova senha do usuário (mínimo 8 caracteres)",
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "12345678"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Usuário atualizado com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Usuário atualizado com sucesso"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/User"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Dados de validação inválidos"
+                    },
+                    "404": {
+                        "description": "Usuário não encontrado"
+                    },
+                    "401": {
+                        "description": "Não autorizado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Remove um usuário",
+                "description": "Remove um usuário e automaticamente remove o player vinculado (se existir)",
+                "operationId": "e0f9a385a1d6788b99e519bd98cf7239",
+                "parameters": [
+                    {
+                        "name": "user",
+                        "in": "path",
+                        "description": "ID do usuário",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Usuário removido com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Usuário removido com sucesso"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Usuário não encontrado"
+                    },
+                    "401": {
+                        "description": "Não autorizado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/users/me": {
+            "get": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Dados do usuário autenticado",
+                "description": "Retorna os dados completos do usuário atualmente autenticado",
+                "operationId": "4917cc84ad78f7572292b07e6fbe4bce",
+                "responses": {
+                    "200": {
+                        "description": "Dados do usuário retornados com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Dados do usuário autenticado"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/User"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autorizado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
         }
     },
     "components": {
+        "schemas": {
+            "Player": {
+                "title": "Player",
+                "description": "Modelo de jogador do sistema",
+                "required": [
+                    "id",
+                    "user_id",
+                    "name",
+                    "created_at",
+                    "updated_at"
+                ],
+                "properties": {
+                    "id": {
+                        "description": "ID único do jogador",
+                        "type": "integer",
+                        "format": "int64",
+                        "example": 1
+                    },
+                    "user_id": {
+                        "description": "ID do usuário vinculado",
+                        "type": "integer",
+                        "format": "int64",
+                        "example": 1
+                    },
+                    "name": {
+                        "description": "Nome do jogador",
+                        "type": "string",
+                        "maxLength": 255,
+                        "example": "João Silva"
+                    },
+                    "image": {
+                        "description": "URL da imagem do jogador",
+                        "type": "string",
+                        "example": "https://example.com/avatar.jpg",
+                        "nullable": true
+                    },
+                    "nickname": {
+                        "description": "Apelido do jogador",
+                        "type": "string",
+                        "example": "Joãozinho",
+                        "nullable": true
+                    },
+                    "goals": {
+                        "description": "Total de gols marcados",
+                        "type": "integer",
+                        "minimum": 0,
+                        "example": 15
+                    },
+                    "assists": {
+                        "description": "Total de assistências",
+                        "type": "integer",
+                        "minimum": 0,
+                        "example": 8
+                    },
+                    "tackles": {
+                        "description": "Total de desarmes",
+                        "type": "integer",
+                        "minimum": 0,
+                        "example": 25
+                    },
+                    "mvps": {
+                        "description": "Total de MVPs",
+                        "type": "integer",
+                        "minimum": 0,
+                        "example": 3
+                    },
+                    "wins": {
+                        "description": "Total de vitórias",
+                        "type": "integer",
+                        "minimum": 0,
+                        "example": 12
+                    },
+                    "matches": {
+                        "description": "Total de partidas jogadas",
+                        "type": "integer",
+                        "minimum": 0,
+                        "example": 20
+                    },
+                    "average_rating": {
+                        "description": "Nota média do jogador",
+                        "type": "number",
+                        "format": "float",
+                        "maximum": 10,
+                        "minimum": 0,
+                        "example": 7.85
+                    },
+                    "win_percentage": {
+                        "description": "Porcentagem de vitórias (calculado automaticamente)",
+                        "type": "number",
+                        "format": "float",
+                        "maximum": 100,
+                        "minimum": 0,
+                        "example": 60
+                    },
+                    "created_at": {
+                        "description": "Data e hora de criação do jogador",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-01-15T10:30:00Z"
+                    },
+                    "updated_at": {
+                        "description": "Data e hora da última atualização",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-01-15T10:30:00Z"
+                    },
+                    "user": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/User"
+                            }
+                        ],
+                        "nullable": true,
+                        "description": "Dados do usuário vinculado ao jogador"
+                    }
+                },
+                "type": "object"
+            },
+            "User": {
+                "title": "User",
+                "description": "Modelo de usuário do sistema",
+                "required": [
+                    "id",
+                    "name",
+                    "email",
+                    "created_at",
+                    "updated_at"
+                ],
+                "properties": {
+                    "id": {
+                        "description": "ID único do usuário",
+                        "type": "integer",
+                        "format": "int64",
+                        "example": 1
+                    },
+                    "name": {
+                        "description": "Nome completo do usuário",
+                        "type": "string",
+                        "maxLength": 255,
+                        "example": "João Silva"
+                    },
+                    "email": {
+                        "description": "Email do usuário",
+                        "type": "string",
+                        "format": "email",
+                        "maxLength": 255,
+                        "example": "joao@example.com"
+                    },
+                    "email_verified_at": {
+                        "description": "Data e hora da verificação do email",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-01-15T10:30:00Z",
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "description": "Data e hora de criação do usuário",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-01-15T10:30:00Z"
+                    },
+                    "updated_at": {
+                        "description": "Data e hora da última atualização",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-01-15T10:30:00Z"
+                    },
+                    "player": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/Player"
+                            }
+                        ],
+                        "nullable": true,
+                        "description": "Dados do jogador vinculado ao usuário"
+                    }
+                },
+                "type": "object"
+            }
+        },
         "securitySchemes": {
             "sanctum": {
                 "type": "http",
@@ -765,8 +2145,20 @@
             "description": "Endpoints para autenticação de usuários"
         },
         {
+            "name": "Email Verification",
+            "description": "Operações de verificação de email"
+        },
+        {
+            "name": "Matches",
+            "description": "Operações relacionadas às partidas de futebol"
+        },
+        {
             "name": "Players",
             "description": "Operações relacionadas aos jogadores"
+        },
+        {
+            "name": "Users",
+            "description": "Operações relacionadas aos usuários do sistema"
         },
         {
             "name": "Health",
