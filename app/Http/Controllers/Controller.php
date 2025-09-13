@@ -24,9 +24,9 @@ namespace App\Http\Controllers;
  *     url="http://localhost:8000",
  *     description="Servidor de desenvolvimento"
  * )
- * 
+ *
  * @OA\Server(
- *     url="https://back-end-production-c28b.up.railway.app",
+ *     url="https://back-end-fut-match-9tjhhx.laravel.cloud/",
  *     description="Servidor de produção"
  * )
  */

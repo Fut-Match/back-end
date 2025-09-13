@@ -22,7 +22,6 @@ return [
     'allowed_origins' => env('APP_ENV') === 'production' 
         ? [
             'https://front-end-murex-nu.vercel.app',
-            'https://back-end-production-c28b.up.railway.app',
             'http://localhost:8080',
         ] 
         : [
