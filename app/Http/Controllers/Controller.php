@@ -26,7 +26,7 @@ namespace App\Http\Controllers;
  * )
  *
  * @OA\Server(
- *     url="https://back-end-fut-match-9tjhhx.laravel.cloud/",
+ *     url="https://back-end-fut-match-9tjhhx.laravel.cloud",
  *     description="Servidor de produção"
  * )
  */
