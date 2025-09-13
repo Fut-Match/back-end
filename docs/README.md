@@ -21,7 +21,7 @@ Este diretório contém a documentação completa da API Fut Match. Aqui você e
 ### 1. **Swagger/OpenAPI**
 A documentação interativa da API está disponível em:
 - **Desenvolvimento**: `http://localhost:8000/api/documentation`
-- **Produção**: `https://back-end-production-c28b.up.railway.app/api/documentation`
+- **Produção**: `https://back-end-fut-match-9tjhhx.laravel.cloud/api/documentation`
 
 ### 2. **Postman Collection**
 Você pode importar as rotas da API diretamente do arquivo Swagger:
