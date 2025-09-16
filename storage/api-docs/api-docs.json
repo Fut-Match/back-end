@@ -2133,9 +2133,9 @@
         "securitySchemes": {
             "sanctum": {
                 "type": "http",
-                "description": "Laravel Sanctum Token Authentication",
-                "scheme": "bearer",
-                "bearerFormat": "JWT"
+                "description": "Token de autenticação do Laravel Sanctum. Use: Bearer {token}",
+                "bearerFormat": "Token",
+                "scheme": "bearer"
             }
         }
     },
@@ -2163,11 +2163,6 @@
         {
             "name": "Health",
             "description": "Health"
-        }
-    ],
-    "security": [
-        {
-            "sanctum": []
         }
     ]
 }
