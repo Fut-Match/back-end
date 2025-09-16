@@ -208,20 +208,27 @@ return [
                         ],
                     ],
                 ],
-                */
                 'sanctum' => [ // Unique name of security
-                    'type' => 'http', // Valid values are "basic", "apiKey" or "oauth2".
-                    'description' => 'Laravel Sanctum Token Authentication',
-                    'scheme' => 'bearer', // The name of the header or query parameter to be used.
-                    'bearerFormat' => 'JWT', // The location of the API key. Valid values are "query" or "header".
+                    'type' => 'apiKey', // Valid values are "basic", "apiKey" or "oauth2".
+                    'description' => 'Enter token in format (Bearer <token>)',
+                    'name' => 'Authorization', // The name of the header or query parameter to be used.
+                    'in' => 'header', // The location of the API key. Valid values are "query" or "header".
                 ],
+                */
             ],
             'security' => [
                 /*
                  * Examples of Securities
                  */
                 [
-                    'sanctum' => []
+                    /*
+                    'oauth2_security_example' => [
+                        'read',
+                        'write'
+                    ],
+
+                    'passport' => []
+                    */
                 ],
             ],
         ],

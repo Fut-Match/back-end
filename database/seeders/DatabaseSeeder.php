@@ -38,9 +38,9 @@ class DatabaseSeeder extends Seeder
         $this->command->info('   - Eventos: ' . MatchEvent::count());
         $this->command->info('');
         $this->command->info('🔑 Credenciais de teste:');
-        $this->command->info('   📧 joao@exemplo.com | 🔐 12345678');
-        $this->command->info('   📧 maria@exemplo.com | 🔐 12345678');
-        $this->command->info('   📧 pedro@exemplo.com | 🔐 12345678');
+        $this->command->info('   📧 joao@exemplo.com | 🔐 123456789');
+        $this->command->info('   📧 maria@exemplo.com | 🔐 123456789');
+        $this->command->info('   📧 pedro@exemplo.com | 🔐 123456789');
         $this->command->info('');
         
         // Mostrar códigos das partidas

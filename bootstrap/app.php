@@ -12,9 +12,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->api(prepend: [
-            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
-        ]);
+        // Configuração para API-only (sem SPA no mesmo domínio)
+        // Removido EnsureFrontendRequestsAreStateful pois não é necessário para API pura
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

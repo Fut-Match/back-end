@@ -22,8 +22,8 @@ class AuthTest extends TestCase
         $userData = [
             'name' => 'João Silva',
             'email' => 'joao@exemplo.com',
-            'password' => 'senha123',
-            'password_confirmation' => 'senha123'
+            'password' => '123456789',
+            'password_confirmation' => '123456789'
         ];
 
         $response = $this->postJson('/api/register', $userData);
@@ -56,12 +56,12 @@ class AuthTest extends TestCase
         $user = User::create([
             'name' => 'João Silva',
             'email' => 'joao@exemplo.com',
-            'password' => bcrypt('senha123'),
+            'password' => bcrypt('123456789'),
         ]);
 
         $response = $this->postJson('/api/login', [
             'email' => 'joao@exemplo.com',
-            'password' => 'senha123'
+            'password' => '123456789'
         ]);
 
         $response->assertStatus(403)
@@ -81,13 +81,13 @@ class AuthTest extends TestCase
         $user = User::create([
             'name' => 'João Silva',
             'email' => 'joao@exemplo.com',
-            'password' => bcrypt('senha123'),
+            'password' => bcrypt('123456789'),
         ]);
         $user->markEmailAsVerified();
 
         $response = $this->postJson('/api/login', [
             'email' => 'joao@exemplo.com',
-            'password' => 'senha123'
+            'password' => '123456789'
         ]);
 
         $response->assertStatus(200)
@@ -117,7 +117,7 @@ class AuthTest extends TestCase
         $user = User::create([
             'name' => 'João Silva',
             'email' => 'joao@exemplo.com',
-            'password' => bcrypt('senha123'),
+            'password' => bcrypt('123456789'),
         ]);
 
         $response = $this->postJson('/api/email/verification-notification', [
@@ -140,7 +140,7 @@ class AuthTest extends TestCase
         $user = User::create([
             'name' => 'João Silva',
             'email' => 'joao@exemplo.com',
-            'password' => bcrypt('senha123'),
+            'password' => bcrypt('123456789'),
         ]);
         $user->markEmailAsVerified();
 
