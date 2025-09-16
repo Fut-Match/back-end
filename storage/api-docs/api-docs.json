@@ -51,12 +51,12 @@
                                     "password": {
                                         "type": "string",
                                         "format": "password",
-                                        "example": "senha123"
+                                        "example": "123456789"
                                     },
                                     "password_confirmation": {
                                         "type": "string",
                                         "format": "password",
-                                        "example": "senha123"
+                                        "example": "123456789"
                                     }
                                 },
                                 "type": "object"
@@ -163,7 +163,7 @@
                                     "password": {
                                         "type": "string",
                                         "format": "password",
-                                        "example": "senha123"
+                                        "example": "123456789"
                                     }
                                 },
                                 "type": "object"
