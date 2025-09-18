@@ -28,6 +28,9 @@ Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);
 Route::post('email/verification-notification', [AuthController::class, 'resendVerificationEmail']);
 
+// Rota administrativa para verificação manual de email (desenvolvimento/testes)
+Route::post('admin/verify-email', [AuthController::class, 'verifyEmailManually']);
+
 // Rotas protegidas por autenticação
 Route::middleware('auth:sanctum')->group(function () {
     // Rotas de autenticação que precisam de token

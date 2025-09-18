@@ -299,7 +299,7 @@ class AuthController extends Controller
      *     path="/api/email/verification-notification",
      *     summary="Reenviar email de verificação",
      *     description="Reenvia o email de verificação para o usuário",
-     *     tags={"Authentication"},
+     *     tags={"Email Verification"},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
@@ -362,6 +362,105 @@ class AuthController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Email de verificação reenviado com sucesso'
+        ], 200);
+    }
+
+    /**
+     * Verificar email manualmente (para desenvolvimento/testes)
+     * 
+     * @OA\Post(
+     *     path="/api/admin/verify-email",
+     *     summary="Verificar email manualmente",
+     *     description="Marca o email de um usuário como verificado manualmente (útil para desenvolvimento e testes)",
+     *     tags={"Email Verification"},
+     *     security={{"sanctum": {}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"email"},
+     *             @OA\Property(property="email", type="string", format="email", example="joao@exemplo.com")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Email verificado com sucesso",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Email verificado manualmente com sucesso"),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="user", type="object",
+     *                     @OA\Property(property="id", type="integer", example=1),
+     *                     @OA\Property(property="name", type="string", example="João Silva"),
+     *                     @OA\Property(property="email", type="string", example="joao@exemplo.com"),
+     *                     @OA\Property(property="email_verified_at", type="string", format="date-time", example="2023-01-01T00:00:00.000000Z")
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Email já verificado",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Email já foi verificado anteriormente")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Usuário não encontrado",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Usuário não encontrado")
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Não autorizado")
+     * )
+     */
+    public function verifyEmailManually(Request $request): JsonResponse
+    {
+        // Validar dados da requisição
+        $request->validate([
+            'email' => ['required', 'email'],
+        ], [
+            'email.required' => 'O email é obrigatório',
+            'email.email' => 'O email deve ter um formato válido',
+        ]);
+
+        // Buscar usuário pelo email
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Usuário não encontrado'
+            ], 404);
+        }
+
+        // Verificar se o email já foi verificado
+        if ($user->hasVerifiedEmail()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Email já foi verificado anteriormente'
+            ], 400);
+        }
+
+        // Marcar email como verificado
+        $user->markEmailAsVerified();
+
+        // Recarregar o usuário para obter os dados atualizados
+        $user->refresh();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Email verificado manualmente com sucesso',
+            'data' => [
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'email_verified_at' => $user->email_verified_at
+                ]
+            ]
         ], 200);
     }
 }
