@@ -71,10 +71,19 @@ RUN npm install
 # Copiar resto dos arquivos da aplicação
 COPY . .
 
-# Ajustar permissões
+# Criar diretórios necessários se não existirem
+RUN mkdir -p /var/www/html/storage/framework/views \
+    && mkdir -p /var/www/html/storage/framework/cache \
+    && mkdir -p /var/www/html/storage/framework/sessions \
+    && mkdir -p /var/www/html/storage/logs \
+    && mkdir -p /var/www/html/bootstrap/cache
+
+# Ajustar permissões - mais robuste
 RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 755 /var/www/html/storage \
-    && chmod -R 755 /var/www/html/bootstrap/cache
+    && chmod -R 775 /var/www/html/storage \
+    && chmod -R 775 /var/www/html/bootstrap/cache \
+    && chmod -R 644 /var/www/html/storage/logs \
+    && find /var/www/html/storage -type d -exec chmod 775 {} \;
 
 # Executar scripts do composer
 RUN composer dump-autoload --optimize
@@ -82,8 +91,13 @@ RUN composer dump-autoload --optimize
 # Build dos assets (se necessário)
 RUN npm run build
 
+# Copiar e configurar entrypoint
+COPY ./docker/php/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
 # Expor porta 9000 para PHP-FPM
 EXPOSE 9000
 
-# Comando padrão
+# Definir entrypoint e comando padrão
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["php-fpm"]
